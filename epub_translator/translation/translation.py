@@ -25,7 +25,7 @@ def translate(
       max_chunk_tokens_count: int,
       max_threads_count: int,
       report_progress: ProgressReporter,
-      gap_rate: float | 0.15,
+      gap_rate: float = 0.15,
     ) -> Generator[str, None, None]:
 
   if user_prompt is not None:

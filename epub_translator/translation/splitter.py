@@ -6,11 +6,11 @@ from .types import Fragment, Incision
 from .chunk import ChunkRange
 
 
-def split_into_chunks(llm: LLM, fragments_iter: Iterator[Fragment], max_chunk_tokens_count: int):
+def split_into_chunks(llm: LLM, fragments_iter: Iterator[Fragment], max_chunk_tokens_count: int, gap_rate: float = 0.15) -> Generator[ChunkRange, None, None]:
   for index, group in enumerate(split(
     resources=_gen_resources(llm, fragments_iter),
     max_segment_count=max_chunk_tokens_count,
-    gap_rate=0.15,
+    gap_rate=gap_rate,
     tail_rate=0.5,
     border_incision=Incision.IMPOSSIBLE,
   )):

@@ -9,7 +9,7 @@ from .epub import HTMLFile
 from .zip_context import ZipContext
 from .translation import translate as _translate, Incision, Fragment, Language, ProgressReporter
 
-filter_str = "split_008"
+filter_str = "split_009"
 class TranslatedWriteMode(Enum):
   APPEND = auto()
   REPLACE = auto()
@@ -58,7 +58,7 @@ class _Translator:
         max_chunk_tokens_count: int,
         max_threads_count: int,
         report_progress: ProgressReporter,
-        gap_rate: float | 0.15,
+        gap_rate = 0.15,
       ) -> None:
 
     self._llm: LLM = llm
