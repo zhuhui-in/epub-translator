@@ -25,6 +25,7 @@ def translate(
       max_chunk_tokens_count: int,
       max_threads_count: int,
       report_progress: ProgressReporter,
+      gap_rate: float | 0.15,
     ) -> Generator[str, None, None]:
 
   if user_prompt is not None:
@@ -35,6 +36,7 @@ def translate(
     llm=llm,
     fragments_iter=gen_fragments_iter(),
     max_chunk_tokens_count=max_chunk_tokens_count,
+    gap_rate=gap_rate,
   ))
   with ThreadPoolExecutor(max_workers=max_threads_count) as executor:
     futures = [

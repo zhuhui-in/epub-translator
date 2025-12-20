@@ -9,7 +9,7 @@ from .epub import HTMLFile
 from .zip_context import ZipContext
 from .translation import translate as _translate, Incision, Fragment, Language, ProgressReporter
 
-
+filter_str = "split_008"
 class TranslatedWriteMode(Enum):
   APPEND = auto()
   REPLACE = auto()
@@ -23,6 +23,7 @@ def translate(
       user_prompt: str | None = None,
       working_path: PathLike | None = None,
       max_chunk_tokens_count: int = 3000,
+      gap_rate: float = 0.15,
       max_threads_count: int = 1,
       report_progress: ProgressReporter | None = None,
     ) -> None:
@@ -40,6 +41,7 @@ def translate(
     max_chunk_tokens_count=max_chunk_tokens_count,
     max_threads_count=max_threads_count,
     report_progress=report_progress,
+    gap_rate=gap_rate,
   ).do(
     source_path=source_path,
     translated_path=translated_path,
@@ -56,6 +58,7 @@ class _Translator:
         max_chunk_tokens_count: int,
         max_threads_count: int,
         report_progress: ProgressReporter,
+        gap_rate: float | 0.15,
       ) -> None:
 
     self._llm: LLM = llm
@@ -65,7 +68,7 @@ class _Translator:
     self._max_chunk_tokens_count: int = max_chunk_tokens_count
     self._max_threads_count: int = max_threads_count
     self._report_progress: ProgressReporter = report_progress
-
+    self.gap_rate = gap_rate
   def do(self, source_path: Path, translated_path: Path, working_path: Path | None) -> None:
     is_temp_workspace = not bool(working_path)
     working_path = working_path or Path(mkdtemp())
@@ -104,6 +107,7 @@ class _Translator:
       target_language=self._target_language,
       user_prompt=self._user_prompt,
       report_progress=report_progress,
+      gap_rate=self.gap_rate,
       gen_fragments_iter=lambda: (
         Fragment(
           text=text,
@@ -145,6 +149,8 @@ class _Translator:
           spine = None
           did_touch_end = True
           break
+        if spine_path.name.find(filter_str) < 0:
+          continue
         spine_file = context.read_spine_file(spine_path)
         if spine_file.texts_length == 0:
           continue
@@ -167,6 +173,8 @@ class _Translator:
 
 def _gen_fragments(context: ZipContext):
   for spine_path in context.search_spine_paths():
+    if spine_path.name.find(filter_str) < 0:
+      continue
     spine_file = context.read_spine_file(spine_path)
     for text in spine_file.read_texts():
       yield Fragment(
