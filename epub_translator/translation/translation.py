@@ -12,7 +12,7 @@ from .store import Store
 from .splitter import split_into_chunks
 from .chunk import match_fragments, Chunk
 from .utils import is_empty, clean_spaces
-
+from .annotation_matcher import annotation_matcher
 
 ProgressReporter = Callable[[float], None]
 
@@ -137,8 +137,8 @@ def _translate_chunk(
 
   return translated_texts
 
-_PLAIN_TEXT_SCALE = 2.0
-_XML_TEXT_SCALE = 2.5
+_PLAIN_TEXT_SCALE = 8.0
+_XML_TEXT_SCALE = 12
 
 def _translate_texts(
       llm: LLM,
@@ -178,7 +178,7 @@ def _translate_texts(
 
   request_element_text = encode_friendly(request_element)
   request_text = f"```XML\n{request_element_text}\n```\n\n{translated_text}"
-
+  return annotation_matcher(request_element_text, translated_text)
   return llm.request_xml(
     template_name="format",
     user_data=request_text,
