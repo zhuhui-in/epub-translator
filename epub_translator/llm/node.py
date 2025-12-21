@@ -62,7 +62,8 @@ class LLM:
     if self._logger_save_path is None:
       return None
 
-    now = datetime.datetime.now(datetime.timezone.utc)
+    beijing_tz = datetime.timezone(datetime.timedelta(hours=8))
+    now = datetime.datetime.now(beijing_tz)
     timestamp = now.strftime("%Y-%m-%d %H-%M-%S %f")
     file_path = self._logger_save_path / f"request {timestamp}.log"
     logger = getLogger(f"LLM Request {timestamp}")
