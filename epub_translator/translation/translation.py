@@ -147,7 +147,26 @@ def _translate_texts(
       target_language: Language,
       user_prompt: str | None,
     ) -> list[str]:
-
+  def inner_parser(original_text:str, r: str):
+    first_appearance = 0
+    annotation_lines = [line.strip() for line in r.split('\n') if line.strip()]
+    for line in annotation_lines:
+        try:
+            if line.find(":") > 0:
+                keyword_part, explanation = line.split(':', 1)
+            else:
+                keyword_part, explanation = line.split('：', 1)
+        except ValueError:
+            raise ValueError(f"Invalid annotation format: {line}")
+        keyword = keyword_part.strip()
+        pos = original_text.find(keyword, first_appearance)
+        if pos >= 0:
+            first_appearance = pos
+            # print(keyword, pos)
+        elif original_text.find(keyword) >= 0:
+            error_str = f"Keyword '{keyword}' appears out of order in XML."
+            raise ValueError(error_str)
+    return r
   original_text = _normalize_user_input(texts)
   if original_text is None:
     return [""] * len(texts)
@@ -160,7 +179,7 @@ def _translate_texts(
     template_name="translate",
     text_tag="TXT",
     user_data=user_data,
-    parser=lambda r: r,
+    parser=lambda r: inner_parser(original_text, r),
     max_tokens=ceil(texts_tokens * _PLAIN_TEXT_SCALE),
     params={
       "target_language": language_chinese_name(target_language),
@@ -178,7 +197,7 @@ def _translate_texts(
 
   request_element_text = encode_friendly(request_element)
   request_text = f"```XML\n{request_element_text}\n```\n\n{translated_text}"
-  return annotation_matcher(request_element_text, translated_text)
+  return annotation_matcher(request_element_text, translated_text, True)
   return llm.request_xml(
     template_name="format",
     user_data=request_text,

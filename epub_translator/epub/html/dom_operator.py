@@ -2,7 +2,7 @@ from io import StringIO
 from typing import cast, Generator, Iterable
 from xml.etree.ElementTree import Element
 from .texts_searcher import search_texts, TextPosition
-
+import xml.etree.ElementTree as ET
 
 def read_texts(root: Element) -> Generator[str, None, None]:
   for element, position, _ in search_texts(root):
@@ -41,9 +41,21 @@ def _write_dom(parent: Element, origin: Element, text: str, append: bool):
     appended.tail = origin.tail
     origin.tail = None
   else:
-    for child in origin:
-      origin.remove(child)
-    origin.text = text
+    if text == "":
+      return
+    try:
+      appended = ET.fromstring(text.replace('epub:type=', 'xmlns:epub="http://www.idpf.org/2007/ops" epub:type='))
+    except ET.ParseError:
+      for child in origin:
+        origin.remove(child)
+      origin.text = text
+      return
+    for index, child in enumerate(parent):
+      if child == origin:
+        parent.insert(index + 1, appended)
+        break
+    parent.remove(origin)
+
 
 def _write_text(left: str | None, right: str, append: bool) -> str:
   if not append:
