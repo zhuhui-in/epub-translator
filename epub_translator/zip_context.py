@@ -47,6 +47,7 @@ class ZipContext:
       f.write(file.file_content)
 
   def replace_ncx(self, replace: Callable[[list[str]], list[str]]):
+    return
     ncx_path = self._epub_content.ncx_path
     if ncx_path is None:
       return

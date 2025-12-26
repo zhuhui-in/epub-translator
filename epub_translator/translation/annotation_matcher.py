@@ -31,12 +31,21 @@ def annotation_matcher(xml_str, annotation_text):
 
     # 提取每行注解的关键词和完整行内容
     line_info = []
+    first_appearance = 0
     for line in annotation_lines:
         try:
-            keyword_part, explanation = line.split(':', 1)
+            if line.find(":") > 0:
+                keyword_part, explanation = line.split(':', 1)
+            else:
+                keyword_part, explanation = line.split('：', 1)
         except ValueError:
             continue
         keyword = keyword_part.strip()
+        pos = xml_str.find(keyword, first_appearance)
+        if pos >= 0:
+            first_appearance = pos
+        elif xml_str.find(keyword) >= 0:
+            raise ValueError(f"Keyword '{keyword}' appears out of order in XML.")
         line_info.append((keyword, line))
 
     # 为每个fragment匹配注解行（按顺序贪婪匹配）
