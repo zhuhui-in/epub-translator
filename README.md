@@ -126,4 +126,9 @@ llm = LLM(
 
 ## 相关开源库
 
-[EPUB Translator Original Repo](https://github.com/oomol-lab/epub-translator/) 利用 AI 大模型自动翻译 EPUB 电子书
+* [EPUB Translator Original Repo](https://github.com/oomol-lab/epub-translator/) 利用 AI 大模型自动翻译 EPUB 电子书
+* [EPUB Rosetta](https://github.com/skywalker1991/epub-rosetta) 提供可以对多种语言的epub电子书进行解析，翻译，标注和语言学习的工具
+* [EPUB Wordwise](https://github.com/xiaochun-z/ebook-wordwise) is a tool to add definition to your e-books so you can read books faster and more efficiently
+
+## 相关闭源产品
+* Kindle wordwise (only available in Android app or kindle devices for purchased books)
