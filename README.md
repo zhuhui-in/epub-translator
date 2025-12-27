@@ -1,100 +1,84 @@
-<div align=center>
-  <h1>EPUB Translator</h1>
-  <p>
-    <a href="https://github.com/oomol-lab/epub-translator/actions/workflows/build.yml" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/oomol-lab/epub-translator/build.yml" alt"ci" /></a>
-    <a href="https://pypi.org/project/epub-translator/" target="_blank"><img src="https://img.shields.io/badge/pip_install-epub--translator-blue" alt="pip install epub-translator" /></a>
-    <a href="https://pypi.org/project/epub-translator/" target="_blank"><img src="https://img.shields.io/pypi/v/epub-translator.svg" alt"pypi epub-translator" /></a>
-    <a href="https://pypi.org/project/epub-translator/" target="_blank"><img src="https://img.shields.io/pypi/pyversions/epub-translator.svg" alt="python versions" /></a>
-    <a href="https://github.com/oomol-lab/epub-translator/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/oomol-lab/epub-translator" alt"license" /></a>
-  </p>
-  <p><a href="https://hub.oomol.com/package/books-translator?open=true" target="_blank"><img src="https://static.oomol.com/assets/button.svg" alt="Open in OOMOL Studio" /></a></p>
-  <p>English | <a href="./README_zh-CN.md">中文</a></p>
-</div>
+# EPUB Auxiliary Note
 
-## Introduction
 
-epub-translator uses AI big models to automatically translate EPUB e-books, and retains 100% of the original book's format, illustrations, catalog and layout, while generating bilingual comparison versions for easy language learning or international sharing.
+## 简介
 
-Whether you are a developer, language learner, or e-book lover, epub-translator can help you easily overcome language barriers.
+epub-translator 利用 AI 大模型自动为 EPUB 外文电子书添加弹出式生词注释，方便语言学习。
 
-- [x] **Multi-language translation**: Supports translation between mainstream languages ​​such as English, Chinese, Japanese, Spanish, French, and German.
-- [x] **Bilingual comparison**: Generates bilingual EPUBs with top-down comparisons for easy comparison and learning.
-- [x] **Insert prompt words**: Guide AI translation, such as glossary, character name list, etc.
-- [x] **Optional AI model**: Supports mainstream big models such as DeepSeek and ChatGPT.
-- [x] **High-performance parallelism**: AI requests multiple concurrent channels to quickly translate the entire book.
+无论你是开发者、语言学习者，还是电子书爱好者，epub-translator 都能让你轻松跨越语言障碍。
 
-## Environment
+- [x] **多语言互译**：支持 英文、中文、日文、西班牙语、法语、德语等主流语言互译。
+- [x] **双语对照**：生成上下对照的双语 EPUB，方便对照学习。
+- [x] **插入提示词**：指导 AI 注解，如术语表，角色人名表等。
+- [x] **AI 模型可选**：支持 DeepSeek、ChatGPT 等主流大模型。
+- [x] **高性能并行**：AI 请求多路并发，快速注解整本书籍。
 
-You can call EPUB Translator directly as a library, or use [OOMOL Studio](https://oomol.com/) to run it directly.
 
-### Run with OOMOL Studio
+### 作为库直接调用
 
-OOMOL uses container technology to directly package the dependencies required by EPUB Translator, and it is ready to use out of the box.
-
-[![](./docs/images/link2youtube.png)](https://www.youtube.com/watch?v=QsAdiskxfXI)
-
-### Call directly as a library
-
-You can also write python code directly and call it as a library. At this time, you need python 3.10 or higher (3.10.16 is recommended).
+你也可以直接写 python 代码，将它作为库调用。此时你需要 python 3.10 或更高版本（推荐 3.10.16）。
 
 ```shell
 pip install epub-translator
 ```
 
-## Quick start
+## 快速开始
 
-First, construct the `LLM` object that calls the AI ​​Large Language Model.
+首先，构造出调用 AI 大语言模型 的 `LLM` 对象。
 
 ```python
 from epub_translator import LLM
 
 llm = LLM(
-  key="<LLM-API-KEY>", # LLM's API key
-  url="https://api.deepseek.com", # LLM's base URL
-  model="deepseek-chat", # LLM's model name
-  token_encoding="o200k_base", # Local model for calculating the number of tokens
+  key="<LLM-API-KEY>", # LLM 的 API key
+  url="https://api.deepseek.com", # LLM 的 base URL
+  model="deepseek-chat", # LLM 的模型名
+  token_encoding="o200k_base", # 计算 tokens 个数的模型
 )
 ```
 
-Then, you can call the `translate` method to translate.
+然后，就可以调用 `translate` 方法注解了。
 
 ```python
 from epub_translator import translate, Language
 
 translate(
-  llm=llm, # llm object constructed in the previous step
-  source_path="/path/to/epub/file", # Original EPUB file to be translated
-  translated_path="/path/to/translated/epub/file", # Path to save the translated EPUB
-  target_language=Language.ENGLISH, # Target language for translation, in this case English.
+  llm=llm, # 上一步构造的 llm 对象
+  source_path="/path/to/epub/file", # 要注解的原 EPUB 文件
+  translated_path="/path/to/translated/epub/file", # 注解后的 EPUB 保存路径
+  write_mode=TranslatedWriteMode.REPLACE,
+  max_chunk_tokens_count=700,
+  gap_rate=0.05,
+  target_language=Language.SIMPLIFIED_CHINESE, # 注解目标语言，此例为简体中文。
 )
 ```
 
-After calling this method, the translation can be inserted under the original text while retaining the EPUB format.
+调用该方法后，便可在保留 EPUB 格式的前提下，将生词注释以弹出式注释的方式插入原文。
 
-![](./docs/images/translation.png)
+![](./docs/images/2025-12-27-200743.png)
 
-## Function
+## 功能
 
-### Save translation progress
+### 保存注解进度
 
-Calling `translate` to translate the entire EPUB e-book takes a long time, and this process may be interrupted for various reasons. For example, when calling LLM, an error is reported and the process is interrupted due to network reasons, or the user can't wait and manually interrupts the process.
+调用 `translate` 注解整本 EPUB 电子书需要较长的时间，此过程可能因各种原因中断。如调用 LLM 时因网络原因而报错中断，或用户等不及了手动中断了进程。
 
-EPUB Translator can cache the translated content as a local file, so that when translating the same book, the translation progress can be saved and the progress can be restored from the last translation interruption.
+EPUB Translator 可以将已注解内容缓存为本地文件，以便在注解同一本书时，实现保存注解进度的功能，可以从上一次注解中断中恢复进度。
 
-Just configure the `working_path` field when calling `translate` and specify a path to cache the files generated by the translation. The next time it is started, EPUB Translator will try to read the translation progress from this path in advance.
+只需要在调用 `translate` 配置 `working_path` 字段，指定一个路径缓存注解所产生的文件即可。在下次启动时，EPUB Translator 会事先从该路径尝试读取注解进度。
 
 ```python
 translate(
-  ..., # other parameters
+  ..., # 其他参数
   working_path="/path/to/cache/translating/files",
 )
 ```
 
-Please note that each call to the `translate` method will write a cache file to the folder where the `workspace_path` is located. This will cause the folder to grow larger and larger. You need to handle it yourself, for example, automatically clear the folder after the translation is successful.
+请注意，每次调用 `translate` 方法都会往 `workspace_path` 所在的文件夹写入缓存文件。这会导致这个文件夹越来越大。你需要自行处理，比如，在注解成功后自动清空文件夹。
 
-### Monitor translation progress
+### 监听注解进度
 
-When calling `translate`, pass a callback function through `report_progress`, and receive a `float` type parameter representing the progress from 0.0 to 1.0, so that the translation progress of the whole book can be monitored.
+在调用 `translate` 时通过 `report_progress` 传入一个回调函数，接收一个 0.0 到 1.0 的 `float` 类型的表示进度的参数，便可监听整本书的注解进度。
 
 ```python
 from tqdm import tqdm
@@ -106,40 +90,40 @@ with tqdm(total=1.0, desc="Translating") as bar:
     bar.refresh()
 
   translate(
-    ..., # other parameters
+    ..., # 其他参数
     report_progress=refresh_progress,
   )
 ```
 
-### Insert prompt words
+### 插入提示词
 
-Insert prompt words to guide the AI ​​language model on how to translate. For example, you can insert a glossary so that AI can unify the terms when translating. Just add the `user_prompt` field when calling `translate`.
+通过插入提示词来指导 AI 大语言模型如何注解。比如，你可以插入术语表，令 AI 在注解时能统一术语。在调用 `translate` 时加上 `user_prompt` 字段即可。
 
 ```python
 translate(
-  ..., # other parameters
-  user_prompt='Le Petit Prince should be translated as "Little Prince".',
+  ..., # 其他参数
+  user_prompt="Le Petit Prince 应该译为“小王子”。",
 )
 ```
 
-### Large Language Model Parameters
+### 大语言模型参数
 
-There are more configuration options when building the `LLM` object.
+在构建 `LLM` 对象时，还有更多的配置项。
 
 ```python
 llm = LLM(
-  key="<LLM-API-KEY>", # LLM's API key
-  url="https://api.deepseek.com", # LLM's base URL
-  model="deepseek-chat", # LLM's model name
-  token_encoding="o200k_base", # Local model for calculating the number of tokens
-  timeout=60.0, # Request timeout (in seconds)
-  top_p=0.6, # Creativity
-  temperature=0.85, # Temperature
-  retry_times=5, # Retry times. If the request still fails after this number, an error will be reported
-  retry_interval_seconds=6.0, # Retry interval (in seconds)
+  key="<LLM-API-KEY>", # LLM 的 API key
+  url="https://api.deepseek.com", # LLM 的 base URL
+  model="deepseek-chat", # LLM 的模型名
+  token_encoding="o200k_base", # 计算 tokens 个数的本地模型
+  timeout=60.0, # 请求超时时间（单位秒）
+  top_p=0.6, # 创造力
+  temperature=0.85, # 温度
+  retry_times=5, # 重试次数，超过此次数后若请求依然失败，则报错
+  retry_interval_seconds=6.0, # 重试间隔时间（单位秒）
 )
 ```
 
-## Related open source libraries
+## 相关开源库
 
-[PDF Craft](https://github.com/oomol-lab/pdf-craft) can convert PDF files into various other formats. This project will focus on the processing of PDF files of scanned books. Use this library with the scanned PDF books to convert and translate them. For more information, please refer to [Video: Convert scanned PDF books to EPUB format and translate them into bilingual books](https://www.bilibili.com/video/BV1tMQZY5EYY/).
+[EPUB Translator Original Repo](https://github.com/oomol-lab/epub-translator/) 利用 AI 大模型自动翻译 EPUB 电子书
