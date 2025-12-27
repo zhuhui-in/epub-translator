@@ -3,6 +3,7 @@ from pathlib import Path
 from enum import auto, Enum
 from tempfile import mkdtemp
 from shutil import rmtree
+import re
 
 from .llm import LLM
 from .epub import HTMLFile
@@ -152,7 +153,7 @@ class _Translator:
           spine = None
           did_touch_end = True
           break
-        if spine_path.name.find(self.filter_str) < 0:
+        if re.search(self.filter_str, spine_path.name) is None:
           continue
         spine_file = context.read_spine_file(spine_path)
         if spine_file.texts_length == 0:
@@ -176,7 +177,7 @@ class _Translator:
 
 def _gen_fragments(context: ZipContext, filter_str: str):
   for spine_path in context.search_spine_paths():
-    if spine_path.name.find(filter_str) < 0:
+    if re.search(filter_str, spine_path.name) is None:
       continue
     spine_file = context.read_spine_file(spine_path)
     for text in spine_file.read_texts():

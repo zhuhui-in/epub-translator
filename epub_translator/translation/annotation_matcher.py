@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import re
+import uuid
 from typing import List
 
 def annotation_matcher(xml_str, annotation_text, xml_replace=False):
@@ -98,7 +99,6 @@ def construct_xml_content(frag_content: str, matched_lines: List[str]) -> str:
     """
     # Parse matched_lines to extract keywords and explanations
     keyword_map = {}  # keyword -> (explanation, footnote_id)
-    footnote_id = 1
 
     for line in matched_lines:
         # Split by colon (English or Chinese)
@@ -112,8 +112,9 @@ def construct_xml_content(frag_content: str, matched_lines: List[str]) -> str:
         keyword = parts[0].strip()
         explanation = parts[1].strip()
         if keyword and explanation:
+            # Generate a unique UUID for each keyword
+            footnote_id = str(uuid.uuid4())
             keyword_map[keyword] = (explanation, footnote_id)
-            footnote_id += 1
 
     # Find all keyword positions in the text (using word boundaries)
     replacements = []  # List of (position, keyword, explanation, footnote_id)
@@ -150,7 +151,7 @@ def construct_xml_content(frag_content: str, matched_lines: List[str]) -> str:
 
     # Build footnotes
     footnotes = []
-    for keyword, (explanation, fn_id) in sorted(keyword_map.items(), key=lambda x: x[1][1]):
+    for keyword, (explanation, fn_id) in keyword_map.items():
         footnotes.append(f'<aside id="fn{fn_id}" epub:type="footnote">{explanation}</aside>')
 
     # Combine everything in <p> tag
