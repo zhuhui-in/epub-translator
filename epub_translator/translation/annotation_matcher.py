@@ -50,6 +50,8 @@ def annotation_matcher(xml_str, annotation_text, xml_replace=False):
         elif xml_str.find(keyword) >= 0:
             error_str = f"Keyword '{keyword}' appears out of order in XML."
             raise ValueError(error_str)
+        else:
+            continue
         line_info.append((keyword, line))
 
     # 为每个fragment匹配注解行（按顺序贪婪匹配）
@@ -97,8 +99,8 @@ def construct_xml_content(frag_content: str, matched_lines: List[str]) -> str:
     Returns:
         XML string with highlighted keywords and footnotes
     """
-    # Parse matched_lines to extract keywords and explanations
-    keyword_map = {}  # keyword -> (explanation, footnote_id)
+    # Parse matched_lines to extract keywords and explanations in order
+    keyword_list = []  # List of (keyword, explanation, footnote_id) in order
 
     for line in matched_lines:
         # Split by colon (English or Chinese)
@@ -114,21 +116,26 @@ def construct_xml_content(frag_content: str, matched_lines: List[str]) -> str:
         if keyword and explanation:
             # Generate a unique UUID for each keyword
             footnote_id = str(uuid.uuid4())
-            keyword_map[keyword] = (explanation, footnote_id)
+            keyword_list.append((keyword, explanation, footnote_id))
 
-    # Find all keyword positions in the text (using word boundaries)
+    # Find keyword positions sequentially (each keyword matches only once, in order)
     replacements = []  # List of (position, keyword, explanation, footnote_id)
-    for keyword, (explanation, fn_id) in keyword_map.items():
+    last_pos = 0  # Track the last matched position to ensure sequential matching
+
+    for keyword, explanation, fn_id in keyword_list:
         # Use regex with word boundaries to match whole words only
         # Escape special regex characters in the keyword
         escaped_keyword = re.escape(keyword)
         pattern = r'\b' + escaped_keyword + r'\b'
 
-        for match in re.finditer(pattern, frag_content):
-            pos = match.start()
+        # Find the first occurrence of this keyword after the last matched position
+        match = re.search(pattern, frag_content[last_pos:])
+        if match:
+            pos = last_pos + match.start()
             replacements.append((pos, keyword, explanation, fn_id))
+            last_pos = pos + len(keyword)  # Update last_pos to after this match
 
-    # Sort by position
+    # Sort by position to ensure correct order
     replacements.sort(key=lambda x: x[0])
 
     # Build the XML string by replacing keywords
@@ -151,7 +158,7 @@ def construct_xml_content(frag_content: str, matched_lines: List[str]) -> str:
 
     # Build footnotes
     footnotes = []
-    for keyword, (explanation, fn_id) in keyword_map.items():
+    for keyword, explanation, fn_id in keyword_list:
         footnotes.append(f'<aside id="fn{fn_id}" epub:type="footnote">{explanation}</aside>')
 
     # Combine everything in <p> tag
